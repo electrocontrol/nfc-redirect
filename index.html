@@ -6,20 +6,37 @@
   <title>Átirányítás…</title>
   <meta name="robots" content="noindex" />
   <style>
-    body { font-family: system-ui, sans-serif; margin: 2rem; line-height: 1.5; }
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: #0b2e59; /* sötétkék */
+      color: #f0f0f0;
+      font-family: system-ui, sans-serif;
+      text-align: center;
+    }
+    img {
+      max-width: 200px;
+      margin-bottom: 1rem;
+    }
+    p {
+      font-size: 1.2rem;
+      opacity: 0.9;
+    }
   </style>
 </head>
 <body>
+  <!-- Logo fájl a repóban legyen: logo.png -->
+  <img src="logo.png" alt="ElectroControl logo" />
   <p>Átirányítás folyamatban… kérjük várjon.</p>
 
   <script>
-    // CÉLOK
     const BOOK_URL  = 'https://wiki.electrocontrol.hu/books/kevin-rpy/chapter/nfc-az-rpyben';
     const LOGIN_URL = 'https://wiki.electrocontrol.hu/login';
     const PUBLIC_URL = 'https://electrocontrol.hu/';
-
-    // Gyors próba (no-cors): ha az URL/host elérhető, a fetch resolve-ol.
-    // Nem olvasunk státuszt/HTML-t, csak elérhetőséget vizsgálunk.
     const TIMEOUT_MS = 1800;
 
     function probe(url, timeoutMs = TIMEOUT_MS) {
@@ -34,16 +51,13 @@
 
     (async () => {
       try {
-        // 1) Könyv oldal elérhető? -> oda megyünk
         await probe(BOOK_URL);
         window.location.replace(BOOK_URL);
       } catch {
         try {
-          // 2) Ha nem, próbáljuk a login oldalt
           await probe(LOGIN_URL);
           window.location.replace(LOGIN_URL);
         } catch {
-          // 3) Ha ez sem megy, nyilvános főoldal
           window.location.replace(PUBLIC_URL);
         }
       }
