@@ -1,27 +1,53 @@
-<script>
-  const INTERNAL_URL = 'https://wiki.electrocontrol.hu/books/kevin-rpy/chapter/nfc-az-rpyben';
-  const PUBLIC_URL   = 'https://electrocontrol.hu/';
-  const PROBE_HOST   = 'https://wiki.electrocontrol.hu';
-  const PROBE_PATH   = '/favicon.ico';
-  const TIMEOUT_MS   = 1800;
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Átirányítás…</title>
+  <meta name="robots" content="noindex" />
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <p>Átirányítás folyamatban… kérjük várjon.</p>
 
-  function probe() {
-    return new Promise((resolve, reject) => {
-      let done = false;
-      const t = setTimeout(() => { if (!done) { done = true; reject(new Error('timeout')); } }, TIMEOUT_MS);
-      fetch(PROBE_HOST + PROBE_PATH, { mode: 'no-cors', cache: 'no-store' })
-        .then(() => { if (!done) { done = true; clearTimeout(t); resolve(true); } })
-        .catch(() => { if (!done) { done = true; clearTimeout(t); reject(); } });
-    });
-  }
+  <script>
+    // CÉLOK
+    const BOOK_URL  = 'https://wiki.electrocontrol.hu/books/kevin-rpy/chapter/nfc-az-rpyben';
+    const LOGIN_URL = 'https://wiki.electrocontrol.hu/login';
+    const PUBLIC_URL = 'https://electrocontrol.hu/';
 
-  (async () => {
-    try {
-      await probe();                 // van Tailscale/DNS
-      window.location.href = INTERNAL_URL; // -> ha nem vagy belépve: login, majd vissza erre az oldalra
-    } catch {
-      window.location.href = PUBLIC_URL;   // nincs Tailscale: publikus oldal
+    // Gyors próba (no-cors): ha az URL/host elérhető, a fetch resolve-ol.
+    // Nem olvasunk státuszt/HTML-t, csak elérhetőséget vizsgálunk.
+    const TIMEOUT_MS = 1800;
+
+    function probe(url, timeoutMs = TIMEOUT_MS) {
+      return new Promise((resolve, reject) => {
+        let done = false;
+        const t = setTimeout(() => { if (!done) { done = true; reject(new Error('timeout')); } }, timeoutMs);
+        fetch(url, { mode: 'no-cors', cache: 'no-store' })
+          .then(() => { if (!done) { done = true; clearTimeout(t); resolve(true); } })
+          .catch(() => { if (!done) { done = true; clearTimeout(t); reject(false); } });
+      });
     }
-  })();
-</script>
 
+    (async () => {
+      try {
+        // 1) Könyv oldal elérhető? -> oda megyünk
+        await probe(BOOK_URL);
+        window.location.replace(BOOK_URL);
+      } catch {
+        try {
+          // 2) Ha nem, próbáljuk a login oldalt
+          await probe(LOGIN_URL);
+          window.location.replace(LOGIN_URL);
+        } catch {
+          // 3) Ha ez sem megy, nyilvános főoldal
+          window.location.replace(PUBLIC_URL);
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
