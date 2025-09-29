@@ -9,16 +9,17 @@
   <p>Átirányítás folyamatban… kérem várjon.</p>
 
   <script>
-    const INTERNAL_URL = 'https://wiki.electrocontrol.hu/books/kevin-rpy/chapter/nfc-az-rpyben';
+    // Ha van Tailscale: mindig a loginre megyünk redirect paraméterrel
+    const INTERNAL_URL = 'https://wiki.electrocontrol.hu/login?redirect=/books/kevin-rpy/chapter/nfc-az-rpyben';
     const PUBLIC_URL   = 'https://electrocontrol.hu/';
-    const PROBE_PATH   = '/favicon.ico';   // egy kis fájl, ami jó próba
-    const TIMEOUT_MS   = 1500;             // 1,5 s várakozás
+    const PROBE_PATH   = '/favicon.ico';
+    const TIMEOUT_MS   = 1500;
 
     function probeInternal() {
       return new Promise((resolve, reject) => {
         let done = false;
         const t = setTimeout(() => { if (!done) { done = true; reject(new Error('timeout')); } }, TIMEOUT_MS);
-        fetch(INTERNAL_URL + PROBE_PATH, { mode: 'no-cors', cache: 'no-store' })
+        fetch('https://wiki.electrocontrol.hu' + PROBE_PATH, { mode: 'no-cors', cache: 'no-store' })
           .then(() => { if (!done) { done = true; clearTimeout(t); resolve(true); } })
           .catch(() => { if (!done) { done = true; clearTimeout(t); reject(new Error('failed')); } });
       });
@@ -26,10 +27,10 @@
 
     (async () => {
       try {
-        await probeInternal();
-        window.location.replace(INTERNAL_URL);
+        await probeInternal();           // van DNS/útvonal -> Tailscale oké
+        window.location.replace(INTERNAL_URL);  // login (ha kell) -> vissza a könyvre
       } catch {
-        window.location.replace(PUBLIC_URL);
+        window.location.replace(PUBLIC_URL);    // nincs Tailscale -> publikus oldal
       }
     })();
   </script>
